@@ -1,4 +1,3 @@
-<%+header%>
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -48,7 +47,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
         }
 
         .large-button:hover {
@@ -63,179 +61,87 @@
         .hidden {
             display: none;
         }
-
-        #countdown, #rebootCountdown {
-            font-weight: bold;
-            color: orange;
-            font-size: 18px;
-            transition: color 0.5s;
-            margin-top: 20px;
-        }
-
-        #system-status {
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 5px;
-            color: white;
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        #status-icon {
-            margin-right: 5px;
-            transition: transform 0.3s;
-        }
     </style>
 </head>
 
 <body>
     <div>
-        <button onclick="goBack()" class="close-button">返回系统页面</button>
-
-        <div id="system-status">
-            <span id="status-icon">⏳</span>
-            <span id="status-text">加载中...</span>
-        </div>
-
-        <h3 style="color: grey;">按键切换到官方系统方式：断电-按住WPS互联键(C5800顶住reset键)-接通电源-等待系统电源灯亮起后，马上松开WPS按键-切换成功</h3>
-        <h3 style="color: grey; margin-top: 20px;">正在使用第二OP系统,请选择操作:</h3>
-        <h4 style="color: rgb(185, 59, 59); margin-top: 20px;">注意:点击按钮时会立即执行，请确认操作！</h4>
-
-        <form id="switchForm" method="post" action="<%= luci.dispatcher.build_url('admin', 'system', 'Secondsystem', 'switch') %>" onsubmit="startCountdown(event)">
+        <button onclick="goBack()" class="close-button">   返回系统页面   </button>
+        <h3 style="color: grey;">按键切换到官方系统方式：断电-按住WPS互联键(C8 668顶住reset键)-接通电源-等待系统电源灯亮起后，马上松开WPS按键-切换成功</h3>
+        <h3><br></h3>
+        <h3 style="color: grey;">正在使用第二OP系统,请选择操作:</h3>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h4 style="color: rgb(185, 59, 59);">注意:点击按钮时会立即执行，请确认操作！</h4>
+        <form id="switchForm" method="post" action="<%= luci.dispatcher.build_url('admin', 'system', 'Secondsystem', 'switch') %>">
             <input type="hidden" name="confirm" value="yes">
-            <input type="submit" value="切换到官方系统" class="large-button">
+            <input type="submit" value="      切换到官方系统      " class="large-button" onclick="return confirm('你确定需要切回到官方系统吗？')">
         </form>
 
-        <form id="rebootForm" method="post" action="<%= luci.dispatcher.build_url('admin', 'system', 'Secondsystem', 'reboots') %>" onsubmit="startRebootCountdown(event)">
+        <form id="rebootForm" method="post" action="<%= luci.dispatcher.build_url('admin', 'system', 'Secondsystem', 'reboots') %>">
             <input type="hidden" name="confirm" value="yes">
-            <input type="submit" value="重启系统" class="large-button">
+            <input type="submit" value="           重启系统           " class="large-button" onclick="return confirm('你确定需要重启系统吗？')">
         </form>
-
-        <h5 style="color: grey; margin-top: 40px;">C8-/660/668/650/C5800/NB68/688-CPE Systemswitch by:zcy-Manper</h5>
-
-        <div id="countdown" class="hidden"></div>
-        <div id="rebootCountdown" class="hidden"></div>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h3><br></h3>
+        <h5 style="color: grey;">C8-/660/668/650/C5800/NB68/688-CPE Systemswitch by:zcy-Manper</h5>
+        <div id="countdown" class="hidden">正在切换到官方系统，请看到电源灯常亮后刷新此页面，请等待5S...</div>
+        <div id="rebootCountdown" class="hidden">正在重启C8-668，请看到电源灯常亮后刷新此页面，请等待5S...</div>
     </div>
+</body>
 
 <script>
-function goBack() {
-    window.history.back();
-}
+    function goBack() {
+        window.history.back();
+    }
 
-// 图标闪烁动画
-function flashIcon(icon) {
-    let count = 0;
-    const interval = setInterval(() => {
-        icon.style.transform = (count % 2 === 0) ? "scale(1.3)" : "scale(1)";
-        count++;
-        if(count > 5) clearInterval(interval);
-    }, 200);
-}
+    function startCountdown(event) {
+        event.preventDefault();
+        document.getElementById('switchForm').style.display = 'none';
+        document.getElementById('rebootForm').style.display = 'none';
 
-// 更新系统状态
-function updateStatus() {
-    fetch("<%= luci.dispatcher.build_url('admin','system','Secondsystem','status') %>")
-        .then(response => response.json())
-        .then(data => {
-            const statusSpan = document.getElementById('system-status');
-            const statusIcon = document.getElementById('status-icon');
-            const statusText = document.getElementById('status-text');
-            const switchBtn = document.getElementById('switchForm').querySelector('input[type="submit"]');
-            const rebootBtn = document.getElementById('rebootForm').querySelector('input[type="submit"]');
+        var countdown = document.getElementById('countdown');
+        countdown.style.display = 'block';
 
-            statusText.innerText = data.status;
+        var count = 5;
+        var interval = 1000;
 
-            if(data.status === '官方系统') {
-                statusSpan.style.backgroundColor = 'green';
-                statusIcon.innerText = '✅';
-                flashIcon(statusIcon);
-                switchBtn.style.backgroundColor = 'orange';
-                switchBtn.style.color = 'white';
-                switchBtn.disabled = false;
-                switchBtn.value = '切换到备用系统';
-            } else if(data.status === '备用系统') {
-                statusSpan.style.backgroundColor = 'orange';
-                statusIcon.innerText = '⚠️';
-                flashIcon(statusIcon);
-                switchBtn.style.backgroundColor = 'green';
-                switchBtn.style.color = 'white';
-                switchBtn.disabled = false;
-                switchBtn.value = '切换到官方系统';
-            } else {
-                statusSpan.style.backgroundColor = 'gray';
-                statusIcon.innerText = '❌';
-                switchBtn.style.backgroundColor = 'gray';
-                switchBtn.disabled = true;
+        var timer = setInterval(function() {
+            countdown.textContent = "正在切换到官方系统，请看到电源灯常亮后刷新此页面，请等待" + count + "S...";
+            count--;
+
+            if (count < 0) {
+                clearInterval(timer);
+                window.location.href = "http://192.168.66.1/";
+                return true;
             }
-        })
-        .catch(() => {
-            const statusSpan = document.getElementById('system-status');
-            const statusIcon = document.getElementById('status-icon');
-            const statusText = document.getElementById('status-text');
-            const switchBtn = document.getElementById('switchForm').querySelector('input[type="submit"]');
+        }, interval);
+    }
 
-            statusText.innerText = "状态获取失败";
-            statusSpan.style.backgroundColor = 'gray';
-            statusIcon.innerText = '❌';
-            switchBtn.style.backgroundColor = 'gray';
-            switchBtn.disabled = true;
-        });
-}
+    function startRebootCountdown(event) {
+        event.preventDefault();
+        document.getElementById('switchForm').style.display = 'none';
+        document.getElementById('rebootForm').style.display = 'none';
 
-// 切换系统倒计时
-function startCountdown(event) {
-    event.preventDefault();
-    if(!confirm('你确定需要切回到官方系统吗？')) return false;
+        var countdown = document.getElementById('rebootCountdown');
+        countdown.style.display = 'block';
 
-    document.getElementById('switchForm').querySelector('input[type="submit"]').disabled = true;
-    document.getElementById('rebootForm').querySelector('input[type="submit"]').disabled = true;
-    document.getElementById('switchForm').style.display = 'none';
-    document.getElementById('rebootForm').style.display = 'none';
+        var count = 5;
+        var interval = 1000;
 
-    var countdown = document.getElementById('countdown');
-    countdown.classList.remove('hidden');
+        var timer = setInterval(function() {
+            countdown.textContent = "正在重启C8-668，请看到电源灯常亮后刷新此页面，请等待" + count + "S...";
+            count--;
 
-    var count = 5;
-    var timer = setInterval(function() {
-        countdown.textContent = "正在切换到官方系统，请看到电源灯常亮后刷新此页面，请等待 " + count + "S...";
-        countdown.style.color = countdown.style.color === 'orange' ? 'red' : 'orange';
-        count--;
-        if(count < 0) {
-            clearInterval(timer);
-            event.target.submit();
-        }
-    }, 1000);
-}
-
-// 重启倒计时
-function startRebootCountdown(event) {
-    event.preventDefault();
-    if(!confirm('你确定需要重启系统吗？')) return false;
-
-    document.getElementById('switchForm').querySelector('input[type="submit"]').disabled = true;
-    document.getElementById('rebootForm').querySelector('input[type="submit"]').disabled = true;
-    document.getElementById('switchForm').style.display = 'none';
-    document.getElementById('rebootForm').style.display = 'none';
-
-    var countdown = document.getElementById('rebootCountdown');
-    countdown.classList.remove('hidden');
-
-    var count = 5;
-    var timer = setInterval(function() {
-        countdown.textContent = "正在重启C8-668，请看到电源灯常亮后刷新此页面，请等待 " + count + "S...";
-        countdown.style.color = countdown.style.color === 'orange' ? 'red' : 'orange';
-        count--;
-        if(count < 0) {
-            clearInterval(timer);
-            event.target.submit();
-        }
-    }, 1000);
-}
-
-// 页面加载时每 5 秒刷新状态
-updateStatus();
-setInterval(updateStatus, 5000);
-
+            if (count < 0) {
+                clearInterval(timer);
+                window.location.href = "http://192.168.66.1/";
+                return true;
+            }
+        }, interval);
+    }
 </script>
-<%+footer%>
