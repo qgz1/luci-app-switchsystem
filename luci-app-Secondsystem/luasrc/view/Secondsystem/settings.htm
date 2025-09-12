@@ -96,16 +96,24 @@
             border-radius: 6px;
         }
 
+        /* 按钮组集中显示优化 */
         .button-group {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            /* 改为水平排列 */
+            flex-direction: row;
+            /* 水平居中 */
+            justify-content: center;
+            /* 垂直方向留间距 */
+            gap: 15px;
             margin: 30px 0;
+            /* 允许换行 */
+            flex-wrap: wrap;
         }
 
         .large-button {
-            font-size: 1.2rem;
-            padding: 15px 20px;
+            font-size: 1.1rem;
+            /* 调整按钮内边距，使两个按钮更协调 */
+            padding: 15px 25px;
             background-color: #ff9900;
             color: #000;
             border: none;
@@ -113,6 +121,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
+            /* 确保按钮有足够宽度 */
+            min-width: 200px;
         }
 
         .large-button:hover {
@@ -152,6 +162,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* 响应式调整：小屏幕下按钮垂直排列 */
         @media (max-width: 600px) {
             .container {
                 padding: 20px 15px;
@@ -161,9 +172,17 @@
                 font-size: 1.5rem;
             }
 
+            .button-group {
+                /* 小屏幕恢复垂直排列 */
+                flex-direction: column;
+                gap: 12px;
+            }
+
             .large-button {
                 font-size: 1rem;
                 padding: 12px 15px;
+                width: 100%;
+                min-width: auto;
             }
         }
     </style>
@@ -189,6 +208,7 @@
             <strong>注意：</strong>点击按钮时会立即执行，请确认操作！
         </div>
 
+        <!-- 集中显示的按钮组 -->
         <div class="button-group">
             <form id="switchForm" method="post" action="&lt;%= luci.dispatcher.build_url('admin', 'system', 'Secondsystem', 'switch') %&gt;">
                 <input type="hidden" name="confirm" value="yes">
