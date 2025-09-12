@@ -1,39 +1,33 @@
-module("luci.controller.Secondsystem", package.seeall)
+m = Map("Secondsystem", "官方系统切换",
+    "通过本页面可以切换到官方系统或重启当前系统。请确保操作前已备份重要配置。")
 
-function index()
-    entry({"admin", "system", "Secondsystem"}, alias("admin", "system", "Secondsystem", "settings"), _("官方系统"), 50)
-    entry({"admin", "system", "Secondsystem", "settings"}, template("Secondsystem/settings"), _("Settings"), 10)
-    entry({"admin", "system", "Secondsystem", "switch"}, call("action_switch"), nil)
-    entry({"admin", "system", "Secondsystem", "reboots"}, call("action_reboots"), nil)
+s = m:section(TypedSection, "status", "")
+s.anonymous = true
+
+s:option(DummyValue, "tip", "提示信息").value = [[
+NRadio C8-668 按键切换到官方系统方式：
+断电 → 按住 WPS 互联键 (顶住 reset 键) → 接通电源 →
+等待系统电源灯亮起后，马上松开 WPS 按键 → 切换成功。
+]]
+
+status = s:option(DummyValue, "current_status", "当前系统状态")
+status.template = "Secondsystem/status"
+status.rmempty = true
+
+switch = s:option(Button, "switch_button", "切换系统")
+switch.inputtitle = "切换到官方系统"
+switch.inputstyle = "reload"
+switch.write = function()
+    luci.sys.call("fw_setenv boot_system 0")
+    luci.sys.call("reboot")
 end
 
-function action_switch()
-    local sys = require "luci.sys"
-    local http = require "luci.http"
-    local command2 = 'AT+CFUN=1,1'
-    local sendat2 = 'python3 /usr/bin/at.py "' .. command2 .. '"'
-    local confirm = http.formvalue("confirm")
-    
-    if confirm and confirm == "yes" then
-        sys.call("fw_setenv boot_system 0")
-        #sys.call(sendat2)
-        sys.call("reboot")
-    else
-        luci.http.redirect(luci.dispatcher.build_url("admin", "system", "Secondsystem", "settings"))
-    end
+reboot = s:option(Button, "reboot_button", "重启系统")
+reboot.inputtitle = "重启系统"
+reboot.inputstyle = "reload"
+reboot.write = function()
+    luci.sys.call("python3 /usr/bin/at.py 'AT+CFUN=1,1'")
+    luci.sys.call("reboot")
 end
 
-function action_reboots()
-    local sys = require "luci.sys"
-    local http = require "luci.http"
-    local command = 'AT+CFUN=1,1'
-    local sendat = 'python3 /usr/bin/at.py "' .. command .. '"'
-    local confirm = http.formvalue("confirm")
-    
-    if confirm and confirm == "yes" then
-        sys.call(sendat)
-        sys.call("reboot")
-    else
-        luci.http.redirect(luci.dispatcher.build_url("admin", "system", "Secondsystem", "settings"))
-    end
-end
+return m
